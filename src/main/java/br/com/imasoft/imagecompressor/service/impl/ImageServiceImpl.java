@@ -3,6 +3,8 @@ package br.com.imasoft.imagecompressor.service.impl;
 import br.com.imasoft.imagecompressor.entity.Image;
 import br.com.imasoft.imagecompressor.repository.ImageRepository;
 import br.com.imasoft.imagecompressor.service.ImageService;
+import org.bson.BsonBinarySubType;
+import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -33,7 +36,7 @@ public class ImageServiceImpl implements ImageService {
 
             File unconpressedFile = new File("/tmp/" + image.getFilename());
 
-            ByteArrayInputStream bis = new ByteArrayInputStream(image.getBytearray());
+            ByteArrayInputStream bis = new ByteArrayInputStream(image.getBytearray().getData());
             BufferedImage bufferedImage = ImageIO.read(bis);
             ImageIO.write(bufferedImage, "jpg", unconpressedFile);
 
@@ -41,7 +44,6 @@ public class ImageServiceImpl implements ImageService {
 
             File output = new File(unconpressedFile.getAbsolutePath());
             OutputStream out = new FileOutputStream(output);
-            long outputSize = Files.size(unconpressedFile.toPath());
 
             ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
             ImageOutputStream ios = ImageIO.createImageOutputStream(out);
@@ -61,13 +63,14 @@ public class ImageServiceImpl implements ImageService {
 
             File compressedFile = new File("/tmp/" + image.getFilename());
             FileInputStream fis = new FileInputStream(compressedFile);
-            Image imageCompressed = Image.of(image.getFilename(), fis.readAllBytes());
+            Image imageCompressed = Image.of(image.getFilename(), new Binary(BsonBinarySubType.BINARY, fis.readAllBytes()));
             imageCompressed.setFilesize(Files.size(compressedFile.toPath()));
+            imageCompressed.setCompressedAt(LocalDateTime.now());
 
-            System.out.println("antes .................. :" + outputSize + "KB");
-            System.out.println("depois .................. :" + Files.size(compressedFile.toPath()) + "KB");
+            this.imageRepository.save(imageCompressed);
 
             fis.close();
+            Files.deleteIfExists(compressedFile.toPath());
 
             return imageCompressed;
         }

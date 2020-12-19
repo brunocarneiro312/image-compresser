@@ -2,6 +2,7 @@ package br.com.imasoft.imagecompressor.controller;
 
 import br.com.imasoft.imagecompressor.entity.Image;
 import br.com.imasoft.imagecompressor.service.ImageService;
+import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +25,7 @@ public class ImageController {
     @PostMapping("/compress")
     public ResponseEntity<Image> compress(@RequestParam("file") MultipartFile file) {
         try {
-            Image image = Image.of(file.getOriginalFilename(), file.getBytes());
+            Image image = Image.of(file.getOriginalFilename(), new Binary(file.getBytes()));
             Image imageCompressed = this.imageService.compress(image);
             return ResponseEntity.ok(imageCompressed);
         }
