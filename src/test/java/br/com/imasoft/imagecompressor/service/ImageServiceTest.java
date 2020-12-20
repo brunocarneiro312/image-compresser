@@ -67,7 +67,9 @@ class ImageServiceTest {
             fail("O arquivo não existe");
         }
 
-        File fileCompressed = new File("/home/brunocarneiro/Pictures/bruno-compressed.jpg");
+        File fileCompressed = new File(file.getAbsolutePath()
+                .replaceAll(file.getName(), "compressed_" + file.getName()));
+
         if (fileCompressed.createNewFile()) {
             FileUtils.copyFile(file, fileCompressed);
         }
@@ -77,8 +79,8 @@ class ImageServiceTest {
         System.out.println(file.getName());
         System.out.println(file.toPath());
 
-        BufferedImage bufferedImage = ImageIO.read(new FileInputStream(file));
-        ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(new FileOutputStream(file));
+        BufferedImage bufferedImage = ImageIO.read(new FileInputStream(fileCompressed));
+        ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(new FileOutputStream(fileCompressed));
         ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
         writer.setOutput(imageOutputStream);
         ImageWriteParam param = writer.getDefaultWriteParam();
