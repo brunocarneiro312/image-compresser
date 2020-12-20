@@ -1,6 +1,6 @@
 package br.com.imasoft.imagecompressor.service;
 
-import br.com.imasoft.imagecompressor.entity.Image;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,9 +11,8 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class ImageServiceTest {
 
@@ -55,5 +54,41 @@ class ImageServiceTest {
         writer.dispose();
 
         // then
+    }
+
+    @Test
+    public void testReadImage() throws IOException {
+
+        File file = new File("/home/brunocarneiro/Pictures/bruno.jpg");
+
+        if (file.exists()) {
+            assert (true);
+        } else {
+            fail("O arquivo não existe");
+        }
+
+        File fileCompressed = new File("/home/brunocarneiro/Pictures/bruno-compressed.jpg");
+        if (fileCompressed.createNewFile()) {
+            FileUtils.copyFile(file, fileCompressed);
+        }
+
+
+        System.out.println(file.getAbsolutePath());
+        System.out.println(file.getName());
+        System.out.println(file.toPath());
+
+        BufferedImage bufferedImage = ImageIO.read(new FileInputStream(file));
+        ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(new FileOutputStream(file));
+        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+        writer.setOutput(imageOutputStream);
+        ImageWriteParam param = writer.getDefaultWriteParam();
+        if (param.canWriteCompressed()) {
+            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(0.05f);
+        }
+
+        writer.write(null, new IIOImage(bufferedImage, null, null), param);
+
+        writer.dispose();
     }
 }
