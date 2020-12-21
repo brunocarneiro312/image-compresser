@@ -16,11 +16,14 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Service
 public class ImageServiceImpl implements ImageService {
@@ -33,17 +36,11 @@ public class ImageServiceImpl implements ImageService {
     }
 
 
-    public Image refactor(Image image) throws Exception {
-
+    @Override
+    public Image compress(Image image) throws Exception {
         try {
 
-//            File unconpressedFile = new File("/tmp/" + image.getFilename());
-//
-//            ByteArrayInputStream bis = new ByteArrayInputStream(image.getBytearray().getData());
-//            BufferedImage bufferedImage = ImageIO.read(bis);
-//            ImageIO.write(bufferedImage, "jpg", unconpressedFile);
-
-            File imageFile = new File("/tmp/" + image.getFilename());
+            File imageFile = new File("src/main/resources/assets/img/" + image.getFilename());
 
             FileUtils.writeByteArrayToFile(imageFile,
                     image.getBytearray().getData());
@@ -67,7 +64,8 @@ public class ImageServiceImpl implements ImageService {
             imageOutputStream.close();
             imageFileOutputStream.close();
             writer.dispose();
-            File compressedFile = new File("/tmp/" + image.getFilename());
+
+            File compressedFile = new File("src/main/resources/assets/img/" + image.getFilename());
             FileInputStream fis = new FileInputStream(compressedFile);
             Image imageCompressed = Image.of(image.getFilename(), new Binary(BsonBinarySubType.BINARY, fis.readAllBytes()));
             imageCompressed.setFilesize(Files.size(compressedFile.toPath()));
@@ -89,38 +87,11 @@ public class ImageServiceImpl implements ImageService {
         return null;
     }
 
-
     private void applyCompression(ImageWriteParam param) throws Exception {
         if (param.canWriteCompressed()) {
             param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
             param.setCompressionQuality(0.05f);
         }
     }
-
-    @Override
-    public Image compress(Image image) throws Exception {
-
-        ByteArrayInputStream input = new ByteArrayInputStream(image.getBytearray().getData());
-        BufferedImage bufferedImage = ImageIO.read(input);
-
-        File output = new File("src/main/resources/assets/img/" + image.getFilename());
-        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
-        writer.setOutput(ImageIO.write(bufferedImage, "jpg", output));
-
-        ImageWriteParam param = writer.getDefaultWriteParam();
-        if (param.canWriteCompressed()) {
-            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-            param.setCompressionQuality(0.05f);
-        }
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(bufferedImage, "jpg", baos);
-
-        Image imageCompressed = Image.of(image.getFilename(), new Binary(BsonBinarySubType.BINARY, baos.toByteArray()));
-        imageCompressed.setCompressedAt(LocalDateTime.now());
-
-        return this.imageRepository.save(imageCompressed);
-    }
-
 
 }
