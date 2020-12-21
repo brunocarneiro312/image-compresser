@@ -59,30 +59,25 @@ class ImageServiceTest {
     @Test
     public void testReadImage() throws IOException {
 
-        File file = new File("/home/brunocarneiro/Pictures/bruno.jpg");
+        File file = new File("src/test/resources/assets/img/acai.jpg");
 
-        if (file.exists()) {
-            assert (true);
-        } else {
-            fail("O arquivo não existe");
-        }
+        assert file.exists(): "O arquivo não existe";
 
-        File fileCompressed = new File(file.getAbsolutePath()
-                .replaceAll(file.getName(), "compressed_" + file.getName()));
+        File fileCompressed = new File("src/test/resources/assets/img/compressed_" + file.getName());
 
         if (fileCompressed.createNewFile()) {
             FileUtils.copyFile(file, fileCompressed);
         }
 
+        FileInputStream fileCompressedInputStream = new FileInputStream(fileCompressed);
+        BufferedImage bufferedImage = ImageIO.read(fileCompressedInputStream);
 
-        System.out.println(file.getAbsolutePath());
-        System.out.println(file.getName());
-        System.out.println(file.toPath());
+        FileOutputStream fileCompressedOutputStream = new FileOutputStream(fileCompressed);
+        ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(fileCompressedOutputStream);
 
-        BufferedImage bufferedImage = ImageIO.read(new FileInputStream(fileCompressed));
-        ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(new FileOutputStream(fileCompressed));
         ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
         writer.setOutput(imageOutputStream);
+
         ImageWriteParam param = writer.getDefaultWriteParam();
         if (param.canWriteCompressed()) {
             param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
@@ -90,7 +85,7 @@ class ImageServiceTest {
         }
 
         writer.write(null, new IIOImage(bufferedImage, null, null), param);
-
         writer.dispose();
     }
+
 }
