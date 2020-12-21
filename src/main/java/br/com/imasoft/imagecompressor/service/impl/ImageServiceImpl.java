@@ -103,8 +103,9 @@ public class ImageServiceImpl implements ImageService {
         ByteArrayInputStream input = new ByteArrayInputStream(image.getBytearray().getData());
         BufferedImage bufferedImage = ImageIO.read(input);
 
+        File output = new File("src/main/resources/assets/img/" + image.getFilename());
         ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
-        writer.setOutput(ImageIO.write(bufferedImage, "jpg", new File("/tmp/" + image.getFilename())));
+        writer.setOutput(ImageIO.write(bufferedImage, "jpg", output));
 
         ImageWriteParam param = writer.getDefaultWriteParam();
         if (param.canWriteCompressed()) {
